@@ -29,13 +29,18 @@ class Process implements Runnable {
     private int burstTime; // Total time the process requires to complete (in milliseconds)
     private int timeQuantum; // Time slice (time quantum) allowed per CPU access (in milliseconds)
     private int remainingTime; // Time left for the process to finish its execution
-
+    private int priority; // priority for each process
+    private long creationTime;
+    public long totalWaitingTime = 0;
+    
     // Constructor to initialize the process with name, burst time, and time quantum
     public Process(String name, int burstTime, int timeQuantum) {
         this.name = name;
         this.burstTime = burstTime;
         this.timeQuantum = timeQuantum;
         this.remainingTime = burstTime; // Initially, remaining time is equal to the burst time
+        this.priority = (int)(Math.random() * 5) + 1; // assign random priority
+        this.creationTime = System.currentTimeMillis();
     }
 
     // This method will be called when the thread for this process is started
@@ -124,7 +129,7 @@ class Process implements Runnable {
         }
     }
 
-    // Getter methods for process name, burst time, and remaining time
+    // Getter methods for process name, burst time, remaining time, and ptiority
     public String getName() {
         return name;
     }
@@ -137,6 +142,10 @@ class Process implements Runnable {
         return remainingTime;
     }
 
+    public int getPriority() {
+    return priority;
+    }
+
     // Check if the process has finished (i.e., no remaining time)
     public boolean isFinished() {
         return remainingTime <= 0;
@@ -144,10 +153,11 @@ class Process implements Runnable {
 }
 
 public class SchedulerSimulation {
+    static int contextSwitches = 0;
     public static void main(String[] args) {
         // ⚠️ IMPORTANT: Put your student ID here to seed the random number generator
         // This makes your output unique to you - DO NOT forget to change this!
-        int studentID = 123456789;  // ← CHANGE THIS TO YOUR ACTUAL STUDENT ID
+        int studentID = 445050284;  // ← CHANGE THIS TO YOUR ACTUAL STUDENT ID
         
         Random random = new Random(studentID);
         
@@ -214,12 +224,14 @@ public class SchedulerSimulation {
         System.out.println(Colors.BOLD + Colors.GREEN + 
                           "╚════════════════════════════════════════════════════════════════════════════════╝" + 
                           Colors.RESET + "\n");
-        
+       
         // Loop to manage the scheduling of processes
         while (!processQueue.isEmpty()) {
             // Get the next thread from the queue (FIFO)
+            contextSwitches++;
             Thread currentThread = processQueue.poll(); // Dequeues the next thread
-            
+            long startTime = System.currentTimeMillis();
+
             // Print the current process queue (list of process IDs in the queue)
             System.out.println(Colors.BOLD + Colors.MAGENTA + "┌─ Ready Queue " + "─".repeat(65) + Colors.RESET);
             System.out.print(Colors.MAGENTA + "│ " + Colors.RESET + Colors.BRIGHT_WHITE + "[" + Colors.RESET);
@@ -245,9 +257,13 @@ public class SchedulerSimulation {
             } catch (InterruptedException e) {
                 System.out.println("Main thread interrupted.");
             }
-            
+
             // Retrieve the process associated with the thread from the map
             Process process = processMap.get(currentThread);
+
+            long endTime = System.currentTimeMillis();
+            process.totalWaitingTime += (startTime - process.creationTime);
+            process.creationTime = endTime;
             
             // Check if the process is not finished
             if (!process.isFinished()) {
@@ -264,6 +280,15 @@ public class SchedulerSimulation {
                 }
             }
         }
+
+                System.out.println("\nProcess Summary:");
+                System.out.println("Name\tBurst Time\tWaiting Time");
+
+for (Process p : processMap.values()) {
+    System.out.println(p.getName() + "\t" +
+        p.getBurstTime() + "\t\t" +
+        p.totalWaitingTime);
+}
         
         // End of the scheduler simulation
         System.out.println(Colors.BOLD + Colors.BRIGHT_GREEN + 
@@ -276,6 +301,7 @@ public class SchedulerSimulation {
         System.out.println(Colors.BOLD + Colors.BRIGHT_GREEN + 
                           "╚════════════════════════════════════════════════════════════════════════════════╝" + 
                           Colors.RESET + "\n");
+        System.out.println("Total context switches: " + contextSwitches); // print total context switches
     }
     
     // Method to add a process to the queue and map, while printing a "ready" message
@@ -291,9 +317,10 @@ public class SchedulerSimulation {
         processMap.put(thread, process);
         
         // Print a message indicating the process has entered the ready queue
-        System.out.println(Colors.BLUE + "  ➕ " + Colors.BOLD + Colors.CYAN + process.getName() + 
-                          Colors.RESET + Colors.BLUE + " added to ready queue" + Colors.RESET + 
-                          " │ Burst time: " + Colors.YELLOW + process.getBurstTime() + "ms" + 
-                          Colors.RESET);
+        System.out.println(Colors.BLUE + "  ➕ " + Colors.BOLD + Colors.CYAN + 
+        process.getName() + " (Priority: " + process.getPriority() + ")" +
+        Colors.RESET + Colors.BLUE + " added to ready queue" + Colors.RESET + 
+        " │ Burst time: " + Colors.YELLOW + process.getBurstTime() + "ms" + 
+        Colors.RESET);
     }
 }

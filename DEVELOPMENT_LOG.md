@@ -22,7 +22,7 @@ Challenges: Understanding time tracking
 Solution: Used System.currentTimeMillis()
 Time spent: 1 hour
 
-Date: 2026-04-14
+Date: 2026-04-13
 Worked on: Testing and fixing errors
 Challenges: Fixing variable order issues
 Solution: Reordered code correctly

@@ -12,4 +12,4 @@ I fixed the problem by organizing the code better and making sure the order was 
 
 4. How can this be improved?
 
-This program can be improved by adding more scheduling algorithms like priority scheduling. Also, we can improve the output and make it clearer.
+This program can be improved by adding more scheduling algorithms like priority scheduling. Also we can improve the output and make it clearer.
